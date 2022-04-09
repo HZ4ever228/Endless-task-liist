@@ -7,7 +7,13 @@
 
 import UIKit
 
+protocol PassUpadatedTask {
+    func passUpdatedSubtask(subtask: TaskListElement?)
+}
+
 class TasksViewController: UIViewController {
+    
+    public var delegate: PassUpadatedTask?
     
     //MARK: - Outlets
 
@@ -52,6 +58,7 @@ class TasksViewController: UIViewController {
             addNewSubtaskStackView.isHidden = true
             let subtask = TaskListElement(name: text, subtasks: [])
             task.addNewSubtask(task: subtask)
+            subtaskNameTextField.text = nil
             self.tableView.reloadData()
         } else {
             print("subtusk name is empty")
@@ -65,15 +72,28 @@ class TasksViewController: UIViewController {
     private func configureNavigationController() {
         if task != nil {
             title = task?.name
+            
+            let button = UIButton()
+            button.setTitle(" Назад", for: .normal)
+            button.addTarget(self, action: #selector(backButtonActionTap), for: .touchUpInside)
+            navigationItem.leftBarButtonItem = UIBarButtonItem(customView: button)
         }
+            
         let addNewQuestionButton = UIButton(frame: CGRect(x: 0, y: 0, width: 21, height: 21))
         addNewQuestionButton.addTarget(self, action: #selector(addNewSubtaskTaskButtonTap), for: UIControl.Event.touchUpInside)
         addNewQuestionButton.setImage(UIImage(systemName: "plus.circle"), for: .normal)
         let addNewQuestionItem = UIBarButtonItem(customView: addNewQuestionButton)
         navigationItem.setRightBarButtonItems([addNewQuestionItem], animated: true)
+        
+        
     }
     
     //MARK: - @objc Private functions
+    
+    @objc private func backButtonActionTap() {
+        delegate?.passUpdatedSubtask(subtask: task)
+        self.navigationController?.popViewController(animated: true)
+    }
     
     @objc private func addNewSubtaskTaskButtonTap() {
         addNewSubtaskStackView.isHidden = !addNewSubtaskStackView.isHidden
@@ -111,9 +131,20 @@ extension TasksViewController: UITableViewDelegate, UITableViewDataSource {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let tasksViewController: TasksViewController = storyboard.instantiateViewController(withIdentifier: "TasksViewController") as! TasksViewController
             tasksViewController.task = subtask
+            tasksViewController.delegate = self
             self.navigationController?.pushViewController(tasksViewController, animated: true)
         }
         
+    }
+}
+
+//MARK: - PassUpadatedTask
+
+extension TasksViewController: PassUpadatedTask {
+    func passUpdatedSubtask(subtask: TaskListElement?) {
+        guard let subtask = subtask, let task = task else { return }
+        task.updateTasksSubtask(subtask: subtask)
+        self.tableView.reloadData()
     }
 }
 

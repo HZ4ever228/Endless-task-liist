@@ -7,7 +7,11 @@
 
 import Foundation
 
-class TaskListElement {
+protocol Task {
+    var name: String {get}
+}
+
+class TaskListElement: Task {
     let name: String
     var subtasks: [TaskListElement]
     
@@ -22,6 +26,14 @@ class TaskListElement {
     
     func addNewSubtask(task: TaskListElement) {
         subtasks.append(task)
+    }
+    
+    func updateTasksSubtask(subtask: TaskListElement) {
+        for task in subtasks {
+            if task.name == subtask.name {
+                task.subtasks = subtask.subtasks
+            }
+        }
     }
     
 }
